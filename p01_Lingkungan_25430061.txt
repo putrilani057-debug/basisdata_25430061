@@ -1,0 +1,17 @@
+-- Modul 1: Lingkungan Kerja MariaDB dan Git
+-- NIM: 061
+
+CREATE DATABASE IF NOT EXISTS kopma_061 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'mhs_061'@'localhost' IDENTIFIED BY 'PasswordKerja';
+
+GRANT ALL PRIVILEGES ON kopma_061.* TO 'mhs_061'@'localhost';
+
+FLUSH PRIVILEGES;
+
+
+CREATE USER IF NOT EXISTS 'tamu_061'@'localhost' IDENTIFIED BY 'PasswordKerja';
+
+GRANT SELECT ON kopma_061.* TO 'tamu_061'@'localhost';
+
+FLUSH PRIVILEGES;
