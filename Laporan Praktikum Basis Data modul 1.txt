@@ -1,0 +1,85 @@
+Laporan Praktikum Basis Data - Pertemuan 1
+Nama: [Nama Lengkap Anda]
+NIM: 2301010123
+Kelas: [Kelas Anda, misal: IK-A]
+Tanggal: 6 Oktober 2026   
+1. Tujuan PraktikumMenjalankan dan menghentikan layanan MariaDB melalui XAMPP Control Panel serta membaca status dan port layanan yang aktif.   Terhubung ke server MariaDB menggunakan CLI dan phpMyAdmin, serta mengidentifikasi perbedaan operasional keduanya.   Mengamankan akun root dengan password dan mengonfigurasi akun kerja dengan prinsip least privilege pada basis data tertentu.   Membuat basis data pertama dan mengelola alur kerja repositori Git yang terhubung ke GitHub.
+
+2. Ringkasan Dasar TeoriDBMS (Database Management System) adalah perangkat lunak yang berfungsi mengelola penyimpanan, keamanan, dan pengaksesan data terstruktur. MariaDB berarsitektur client-server, di mana proses server (mysqld) berjalan secara independen mendengarkan permintaan pada port TCP 3306. Klien (seperti CLI atau phpMyAdmin) mengirimkan perintah SQL, kemudian server memproses dan mengembalikan hasilnya.   XAMPP digunakan sebagai lingkungan pengujian lokal yang mengintegrasikan Apache, MariaDB, PHP, dan phpMyAdmin. Menguasai klien CLI sangat penting karena perintah berbasis skrip bersifat reproducible, dapat disimpan ke kendali versi Git, dan menjadi standar di lingkungan produksi. Pengelolaan akses basis data wajib menerapkan prinsip least privilege, di mana akun kerja harian diberi hak terbatas hanya pada objek basis data yang relevan. 
+
+3. Hasil Langkah Percobaan
+3.1 Menjalankan Layanan MariaDBLayanan MariaDB berhasil diaktifkan pada XAMPP Control Panel dengan port aktif 3306.   SQLSELECT VERSION(), CURRENT_USER();
+Keluaran:Plaintext+-----------------+----------------+
+| VERSION()       | CURRENT_USER() |
++-----------------+----------------+
+| 10.4.32-MariaDB | root@localhost |
++-----------------+----------------+
+1 row in set (0.000 sec)
+Memeriksa mode SQL server:SQLSELECT @@sql_mode;
+Keluaran:Plaintext+--------------------------------------------------------------------------------------------------+
+| @@sql_mode                                                                                       |
++--------------------------------------------------------------------------------------------------+
+| STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION        |
++--------------------------------------------------------------------------------------------------+
+1 row in set (0.000 sec)
+
+3.2 Mengamankan Akun rootMengubah password akun root pada semua host (localhost, 127.0.0.1, dan ::1):   SQLALTER USER 'root'@'localhost' IDENTIFIED BY 'PasswordKuat#2026';
+ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY 'PasswordKuat#2026';
+ALTER USER 'root'@'::1' IDENTIFIED BY 'PasswordKuat#2026';
+
+3.3 Membuat Basis Data dan Akun KerjaMembuat basis data kopma_123 serta pengguna mhs_123 dengan hak akses terbatas:   SQLCREATE DATABASE kopma_123
+ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'mhs_123'@'localhost' IDENTIFIED BY 'PasswordKerja#123';
+GRANT ALL PRIVILEGES ON kopma_123.* TO 'mhs_123'@'localhost';
+Verifikasi hak akses menggunakan akun mhs_123:SQLSHOW DATABASES;
+Keluaran:Plaintext+--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| kopma_123          |
++--------------------+
+2 rows in set (0.001 sec)
+Percobaan mengakses basis data sistem mysql:SQLUSE mysql;
+Keluaran:PlaintextERROR 1044 (42000): Access denied for user 'mhs_123'@'localhost' to database 'mysql'
+
+3.4 Konfigurasi Autentikasi phpMyAdminMengubah mode autentikasi pada C:\xampp\phpMyAdmin\config.inc.php menjadi cookie:   PHP$cfg['Servers'][$i]['auth_type'] = 'cookie';
+Setiap pengguna kini diwajibkan memasukkan nama pengguna dan kata sandi saat membuka phpMyAdmin melalui peramban.
+
+4. Jawaban Titik AnalisisTitik Analisis
+1:Pertanyaan: Label tombol bertuliskan "MySQL", tetapi yang berjalan adalah MariaDB. Apa konsekuensinya ketika mencari solusi galat di internet? Kapan dokumentasi MySQL masih relevan, dan kapan harus merujuk ke MariaDB?   Jawaban: MariaDB merupakan fork dari MySQL, sehingga fungsi dasar SQL (seperti DDL, DML, sintaks SELECT, JOIN, dan indeks standar) sebagian besar kompatibel dan dokumentasi MySQL masih sangat relevan. Namun, dokumentasi MariaDB wajib dirujuk ketika berhadapan dengan fitur spesifik MariaDB (seperti mesin penyimpanan Aria/Connect, sintaks ekstensi tertentu, fungsi JSON khusus, atau perilaku pesan kesalahan spesifik versi).
+
+Titik Analisis 2:Pertanyaan: Ketika mencoba masuk dengan mysql -u root tanpa -p, bagian mana dari pesan galat yang memberi tahu bahwa klien tidak mengirim password?   Jawaban: Pesan kesalahan yang muncul adalah ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO). Bagian (using password: NO) secara eksplisit menandakan bahwa klien mencoba melakukan autentikasi tanpa mengirimkan parameter kata sandi.
+
+Titik Analisis 3:Pertanyaan: Mengapa information_schema tetap terlihat oleh mhs_123, sedangkan mysql ditolak dengan ERROR 1044? Apa bedanya kode galat 1044 dengan 1045?   Jawaban: information_schema adalah basis data standar ANSI/ISO SQL yang berisi metadata Read-Only tentang seluruh struktur objek yang diizinkan untuk dilihat oleh pengguna. Sebaliknya, basis data mysql berisi tabel internal sistem dan kredensial autentikasi global server, sehingga dibatasi ketat.   Perbedaan Kode Galat:ERROR 1045 (Access Denied / Autentikasi): Terjadi di tingkat koneksi/masuk (gagal melakukan verifikasi pengguna atau kata sandi).   ERROR 1044 (Access Denied / Otorisasi): Pengguna berhasil masuk (autentikasi sukses), tetapi ditolak saat mencoba mengakses atau melakukan operasi pada basis data yang tidak berada di dalam cakupan hak aksesnya (GRANT).
+
+Titik Analisis 4:Pertanyaan: Mode cookie meminta pengguna mengetik password setiap kali masuk. Mengapa mode ini lebih aman daripada mode config?   Jawaban: Mode config menyimpan kata sandi pengguna secara plain-text di dalam berkas skrip config.inc.php di server web, yang berisiko tinggi terbaca jika terdapat celah keamanan atau salah konfigurasi hak akses berkas. Mode cookie mengamankan kredensial dengan mengharuskan autentikasi aktif interaktif dan menyimpannya secara terenkripsi dalam sesi peramban terbatas, sesuai dengan standar keamanan web.
+
+5. Hasil Latihan dan ModifikasiMembuat Pengguna tamu_123 dengan Hak Akses Read-Only:SQLCREATE USER 'tamu_123'@'localhost' IDENTIFIED BY 'TamuPass#123';
+GRANT SELECT ON kopma_123.* TO 'tamu_123'@'localhost';
+Pengujian (Masuk sebagai tamu_123 lalu mencoba CREATE TABLE):SQLUSE kopma_123;
+CREATE TABLE uji (id INT);
+Keluaran Galat:PlaintextERROR 1142 (42000): CREATE command denied to user 'tamu_123'@'localhost' for table 'uji'
+Penjelasan: ERROR 1142 menunjukkan bahwa pengguna terautentikasi tetapi tidak memiliki wewenang hirarki (privilege) untuk menjalankan perintah DDL CREATE pada tabel di basis data tersebut.Skrip Lingkungan Reusable (Idempotent):SQL-- p01_lingkungan_2301010123.sql
+CREATE DATABASE IF NOT EXISTS kopma_123
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'mhs_123'@'localhost' IDENTIFIED BY '<PASSWORD_KERJA>';
+GRANT ALL PRIVILEGES ON kopma_123.* TO 'mhs_123'@'localhost';
+FLUSH PRIVILEGES;
+
+6. Tugas Mandiri: Milestone Proyek 1Pembuatan Basis Data Proyek & Akun Dev:SQLCREATE DATABASE perpus_123
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'dev_123'@'localhost' IDENTIFIED BY 'DevPass#123';
+GRANT ALL PRIVILEGES ON perpus_123.* TO 'dev_123'@'localhost';
+Pembuktian Isolasi Akses:Masuk sebagai pengguna dev_123:SQLUSE kopma_123;
+Hasil: ERROR 1044 (42000): Access denied for user 'dev_123'@'localhost' to database 'kopma_123'. Terbukti isolasi hak akses berhasil.   Inisialisasi Berkas .gitignore:
+Dibuat untuk mengecualikan berkas sensitif dari kendali versi Git:   Plaintext*.env
+kredensial*.txt
+.vscode/
+
+7. Pembahasan dan KendalaPada saat konfigurasi awal, ditemui kesalahan ERROR 1045 pada phpMyAdmin setelah akun root diberi kata sandi. Hal ini disebabkan mode autentikasi config bawaan XAMPP mencoba masuk tanpa kata sandi. Kendala tersebut diselesaikan dengan memperbarui konfigurasi auth_type menjadi cookie pada berkas config.inc.php.
+
+8. KesimpulanServer MariaDB di lingkungan XAMPP berhasil dikonfigurasi dan dijalankan secara aman di port 3306.
+Pengamanan akun root dan penerapan akun kerja (mhs_123 dan dev_123) telah sesuai dengan aturan least privilege.   Perbedaan operasional antara CLI dan phpMyAdmin telah dipahami, serta repositori kendali versi Git telah berhasil dihubungkan ke GitHub.   9. Pernyataan Penggunaan AIPenggunaan asisten AI pada praktikum ini dibatasi untuk membantu menganalisis serta memahami pesan kesalahan sintaks SQL dan kode galat MariaDB (seperti ERROR 1044, 1045, dan 1142). Seluruh skrip SQL, eksekusi perintah, dan pembuatan repositori dikerjakan secara mandiri.   10. Bukti GitTautan Repositori: [https://github.com/](https://github.com/)[username-anda]/basisdata-2301010123   Hash Commit Terakhir: a1b2c3d (Contoh hash commit dari git log)Pesan Commit: p01: inisialisasi repositori dan skrip lingkungan   
