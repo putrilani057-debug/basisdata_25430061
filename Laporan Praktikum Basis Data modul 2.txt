@@ -1,0 +1,109 @@
+# Laporan Praktikum Basis Data - Modul 2: Analisis Kebutuhan Pengelolaan Data
+
+**NIM:** 25430061  
+**Nama:** Putri Meilani  
+**Kelas:** C  
+**Tanggal:** 6 Oktober 2026  
+
+---
+
+## 1. Identitas & Tujuan Praktikum
+- Mampu menganalisis kebutuhan pengelolaan data dari studi kasus organisasi/usaha ritel.
+- Mampu mengidentifikasi entitas, atribut, aturan bisnis, dan kebutuhan informasi.
+- Mampu menyusun Matriks CRUD dan Kamus Data Awal.
+- Mampu mengidentifikasi kebutuhan non-fungsional dan mengantisipasi isu kualitas data.
+
+---
+
+## 2. Ringkasan Dasar Teori
+Analisis kebutuhan data merupakan tahap awal dalam perancangan basis data untuk memahami informasi apa saja yang perlu disimpan dan bagaimana data tersebut berinteraksi dengan proses bisnis.
+- **Entitas & Atribut:** Entitas mewakili objek/konsep utama (misal: Produk, Pelanggan), sedangkan atribut adalah karakteristik yang melekat padanya.
+- **Aturan Bisnis (Business Rules):** Batasan atau kebijakan operasional yang mengatur bagaimana data dibuat, diubah, dan dihapus.
+- **Matriks CRUD:** Pemetaan antara proses bisnis dengan operasi data (*Create, Read, Update, Delete*) untuk memastikan keterhubungan antar komponen.
+- **Kamus Data:** Spesifikasi detail mengenai makna, format, batasan integritas, dan penanggung jawab tiap elemen data.
+
+---
+
+## 3. Hasil Langkah Percobaan (Langkah D.1 – D.7)
+Praktikum dilakukan dengan menganalisis kebutuhan data pada Toko Kosmetik "GlowUp Beauty" yang mencakup:
+1. Identifikasi 6 proses bisnis utama (PB-01 s.d. PB-06).
+2. Analisis dokumen sumber (Formulir Registrasi Member, Struk Penjualan, Faktur Penerimaan).
+3. Pendataan 9 entitas kandidat beserta atribut kunci.
+4. Perumusan 6 aturan bisnis operasional (AB-01 s.d. AB-06).
+5. Pemetaan 4 kebutuhan informasi utama (KI-01 s.d. KI-04).
+6. Penyusunan Matriks CRUD dan Kamus Data Awal.
+7. Identifikasi kebutuhan non-fungsional dan isu kualitas data.
+
+---
+
+## 4. Jawaban Titik Analisis
+
+*   **Titik Analisis 1:**  
+    Harga produk disimpan per baris transaksi di `detail_penjualan` karena harga bersifat dinamis akibat promo atau penyesuaian dari distributor. Jika hanya merujuk ke tabel `produk`, harga pada riwayat transaksi lama akan ikut berubah saat master harga diperbarui, sehingga merusak keabsahan laporan pendapatan terdahulu.
+
+*   **Titik Analisis 2:**  
+    - *Alasan Tidak Menyimpan Total:* Mencegah redundansi data dan risiko ketidakcocokan nilai jika kuantitas/harga pada detail berubah. Total bisa dihitung dinamis menggunakan fungsi agregasi `SUM(qty * harga)`.  
+    - *Alasan Menyimpan Total:* Mempercepat kueri pelaporan transaksi riwayat dalam jumlah besar tanpa perlu menghitung ulang seluruh baris detail setiap kali kueri dijalankan.
+
+*   **Titik Analisis 3:**  
+    Tidak adanya operasi **C** (*Create*) pada entitas `Distributor` di Matriks CRUD awal mengindikasikan belum terakomodasinya proses **"Pengelolaan Master Distributor"**. Diperlukan juga proses **"Pengelolaan Status Member / Tier Loyalitas"** oleh Manajer Toko untuk memperbarui keaktifan atau tingkatan member.
+
+---
+
+## 5. Hasil Latihan dan Modifikasi (Studi Kasus Toko Kosmetik)
+
+### Penambahan Fitur Poin Loyalitas & Promo Member
+- **Elemen Data Baru:** `poin_member` pada entitas `Pelanggan`, `poin_diperoleh` dan `potongan_voucher` pada entitas `Penjualan`.
+- **Aturan Bisnis Tambahan:**
+  - **AB-07:** Member aktif memperoleh 1 poin loyalitas setiap pembelanjaan produk kelipatan Rp15.000.
+  - **AB-08:** Poin loyalitas dapat ditukarkan dengan voucher potongan belanja senilai Rp10.000 untuk setiap 100 poin.
+- **Kebutuhan Informasi Tambahan (KI-05):** Laporan rekapitulasi saldo poin dan riwayat penggunaan voucher per member.
+
+### Perbaikan Pernyataan Kebutuhan Kabur
+1. **Kabur:** "Data member kosmetik harus aman."  
+   **Spesifik:** "Akses ke atribut `no_hp_pelanggan` dibatasi hanya untuk Manajer Toko; Kasir hanya diizinkan membaca `id_pelanggan`, `nama_pelanggan`, dan `saldo_poin`."
+2. **Kabur:** "Sistem harus cepat mencari stok kosmetik."  
+   **Spesifik:** "Pencarian stok berdasarkan `kode_barcode` atau `nama_produk` harus menghasilkan respons kurang dari 1 detik untuk pencarian hingga 5.000 varian produk."
+3. **Kabur:** "Laporan barang kadaluarsa harus jelas."  
+   **Spesifik:** "Sistem secara otomatis menampilkan peringatan harian untuk daftar produk dengan `tgl_kadaluarsa` yang kurang dari 90 hari dari tanggal berjalan."
+
+---
+
+## 6. Tugas Mandiri: Milestone Proyek 2
+
+Perhitungan Parameter NIM:  
+$NIM = 25430061$ (2 digit terakhir = $61$)  
+$$P = (61 \pmod 9) + 1 = 7 + 1 = 8$$
+
+- Batas Maksimal Item per Transaksi $= P + 2 = 8 + 2 = 10\text{ item}$
+- Persentase Diskon Member $= P = 8\%$
+- Estimasi Volume Transaksi Harian $= 40 + (5 \times P) = 40 + (5 \times 8) = 80\text{ transaksi/hari}$
+
+Dokumen kebutuhan data lengkap telah disusun dan disimpan dalam berkas `p02_kebutuhan_data_25430061.md` pada *root* repositori.
+
+---
+
+## 7. Pembahasan dan Kendala
+- **Pembahasan:** Analisis kebutuhan data berhasil memetakan alur operasional toko kosmetik dari pencatatan barang masuk, transaksi kasir, hingga pemeriksaan masa kadaluarsa batch produk.
+- **Kendala & Solusi:** Kendala terjadi saat proses pengunggahan (*push*) awal ke GitHub di mana ekstensi file masih dalam format `.txt` dan lokasi folder laporan belum sesuai. Solusi dilakukan dengan mengubah nama/ekstensi file menjadi `.md` via VS Code/Terminal dan memindahkannya ke direktori `laporan/`.
+
+---
+
+## 8. Kesimpulan
+Melalui praktikum Modul 2, proses identifikasi entitas, pembuatan Matriks CRUD, perumusan Aturan Bisnis, dan penyusunan Kamus Data Awal terbukti efektif untuk memastikan seluruh kebutuhan pengelolaan data toko kosmetik terakomodasi secara terstruktur sebelum melangkah ke tahap perancangan konseptual (ERD).
+
+---
+
+## 9. Pernyataan Penggunaan AI
+Laporan dan dokumen kebutuhan data disusun dengan bantuan asisten kecerdasan buatan (Gemini AI) untuk pemformulasian draf dokumen, validasi aturan bisnis, serta penentuan langkah-langkah penyelesaian kendala *git push*.
+
+---
+
+## 10. Bukti Git
+Commit Hash Terbaru: `39f135c`  
+Pesan Commit: `p02: memperbarui ekstensi file ke md`
+
+```text
+39f135c (HEAD -> main, origin/main) p02: memperbarui ekstensi file ke md
+026dfdf p02: _kebutuhan_data_25430061
+ee1a22f p01: menambahkan laporan dan gambar hasil praktikum
