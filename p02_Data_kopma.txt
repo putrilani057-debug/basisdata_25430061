@@ -1,0 +1,76 @@
+# Dokumen Kebutuhan Data Koperasi Mahasiswa (Kopma)
+
+## 1. Latar Belakang dan Aktivitas Organisasi
+Koperasi Mahasiswa (Kopma) mengelola unit usaha ritel minimarket (makanan, minuman, ATK), jasa cetak/fotokopi, serta administrasi keanggotaan mahasiswa. Aktivitas utama meliputi pendaftaran anggota, transaksi penjualan kasir, pemesanan barang ke pemasok, pengelolaan simpanan pokok/wajib, dan penyusunan laporan SHU (Sisa Hasil Usaha).
+
+## 2. Aktor dan Proses Bisnis
+
+| Kode | Proses Bisnis | Aktor | Pemicu |
+|---|---|---|---|
+| PB-01 | Mendaftarkan Anggota Kopma | Kasir / Admin | Mahasiswa mendaftar menjadi anggota Kopma |
+| PB-02 | Mencatat Transaksi Penjualan Ritel | Kasir | Anggota/non-anggota melakukan pembayaran barang |
+| PB-03 | Pengadaan Stok ke Pemasok | Staf Gudang | `stok_produk` ≤ `stok_minimum` |
+| PB-04 | Penerimaan Barang Masuk | Staf Gudang | Pesanan barang tiba dari pemasok |
+| PB-05 | Penyusunan Laporan Penjualan & SHU | Pengurus / Manajer | Penutupan kasir harian / rekapitulasi periodik |
+| PB-06 | Kelola Data Pemasok & Mitra | Staf Gudang | Kerjasama baru atau pembaruan kontak pemasok |
+
+## 3. Dokumen Sumber yang Dianalisis
+- **Formulir Pendaftaran Anggota:** NPM, Nama, Program Studi, No HP, Email, Simpanan Pokok.
+- **Struk Penjualan:** No Transaksi, Tanggal, Jam, ID Kasir, ID Anggota, Nama Barang, Qty, Harga Satuan, Potongan Anggota, Total Bayar.
+- **Faktur Pembelian Barang:** No Faktur, Nama Pemasok, Tanggal Masuk, Barcode Barang, Qty Beli, Harga Beli.
+
+## 4. Entitas Kandidat dan Elemen Data
+- **Anggota:** id_anggota, npm, nama_anggota, prodi, no_hp, total_simpanan, tgl_gabung.
+- **Pengurus_Pegawai:** id_pegawai, kode_pegawai, nama_pegawai, jabatan.
+- **Produk:** id_produk, kode_barcode, nama_produk, kategori_produk, harga_jual, stok_produk, stok_minimum.
+- **Penjualan:** id_penjualan, no_nota, tgl_penjualan, id_pegawai, id_anggota, total_bayar, jenis_pembayaran.
+- **Detail_Penjualan:** id_penjualan, id_produk, qty_jual, harga_satuan, diskon_anggota.
+- **Pemasok:** id_pemasok, nama_pemasok, telepon_pemasok, alamat_pemasok.
+- **Pembelian:** id_pembelian, no_faktur, tgl_pembelian, id_pemasok, status_pembelian.
+- **Detail_Pembelian:** id_pembelian, id_produk, qty_beli, harga_beli_satuan.
+
+## 5. Aturan Bisnis
+- **AB-01:** Setiap nota penjualan memiliki nomor unik dan berisi minimal 1 item barang.
+- **AB-02:** Penjualan dapat dilayani untuk umum maupun anggota. Anggota aktif berhak mendapatkan diskon khusus $P\%$ ($8\%$) dan poin SHU.
+- **AB-03:** Batas maksimal item belanja per transaksi kasir adalah $P + 2 = 10\text{ item}$.
+- **AB-04:** Stok barang berkurang otomatis saat terjadi transaksi kasir dan bertambah saat konfirmasi penerimaan barang.
+- **AB-05:** Atribut `npm` dan `kode_barcode` bernilai unik (*UNIQUE*).
+- **AB-06:** Peringatan pengadaan barang dipicu saat `stok_produk` mencapai atau di bawah `stok_minimum`.
+
+## 6. Kebutuhan Informasi
+
+| Kode | Kebutuhan Informasi | Data yang Diperlukan |
+|---|---|---|
+| KI-01 | Laporan total omzet harian dan bulanan per kategori produk | Penjualan, Detail_Penjualan, Produk |
+| KI-02 | Rekapitulasi kontribusi transaksi dan keaktifan belanja anggota untuk pembagian SHU | Penjualan, Anggota |
+| KI-03 | Daftar barang paling laris (*top 5 best seller*) per bulan | Detail_Penjualan, Produk |
+| KI-04 | Laporan stok barang di bawah batas minimum (*reorder list*) | Produk, Detail_Pembelian |
+
+## 7. Matriks CRUD
+
+| Proses | Anggota | Pengurus_Pegawai | Produk | Penjualan | Detail_Penjualan | Pemasok | Pembelian | Detail_Pembelian |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| PB-01 | C | R | - | - | - | - | - | - |
+| PB-02 | R, U | R | R, U | C | C | - | - | - |
+| PB-03 | - | R | R | - | - | R | C | C |
+| PB-04 | - | R | U | - | - | R | U | R |
+| PB-05 | R | R | R | R | R | R | R | R |
+| PB-06 | - | R | - | - | - | C, U | - | - |
+
+## 8. Kamus Data Awal (Cuplikan)
+
+| Elemen Data | Arti / Deskripsi | Contoh Nilai | Aturan Integritas | Penanggung Jawab |
+|---|---|---|---|---|
+| `npm` | Nomor Pokok Mahasiswa anggota Kopma | `25430061` | UNIQUE, Format Angka | Admin / Kasir |
+| `kode_barcode` | Kode unik item barang ritel | `8991001100123` | UNIQUE, Standard Barcode | Staf Gudang |
+| `stok_produk` | Jumlah fisik barang di toko Kopma | `50` | Integer, ≥ 0 | Staf Gudang |
+| `harga_satuan` | Harga jual produk saat transaksi | `5000.00` | Decimal, ≥ 0 | Kasir |
+
+## 9. Kebutuhan Non-Fungsional
+- **Volume:** Estimasi volume transaksi $40 + (5 \times P) = 80\text{ transaksi/hari}$.
+- **Retensi Data:** Data riwayat transaksi disimpan minimal selama 3 tahun untuk keperluan audit SHU.
+- **Keamanan Data:** Informasi kontak pribadi anggota hanya dapat diakses oleh Pengurus Kopma.
+
+## 10. Isu Kualitas Data yang Diantisipasi
+- Penanganan pencatatan ganda pada barang yang memiliki varian kemasan/merek berbeda.
+- Mencegah adanya kesalahan penginputan transaksi anggota akibat nomor identitas (NPM) yang tidak valid.
