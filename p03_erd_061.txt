@@ -1,0 +1,85 @@
+erDiagram
+    PELANGGAN {
+        string id_pelanggan PK
+        string no_member
+        string nama_pelanggan
+        string no_hp_pelanggan
+        date tgl_lahir
+        int poin_member
+        date tgl_daftar
+    }
+
+    PEGAWAI {
+        string id_pegawai PK
+        string kode_pegawai
+        string nama_pegawai
+        string peran_pegawai
+    }
+
+    PRODUK {
+        string id_produk PK
+        string kode_barcode
+        string nama_produk
+        string merek_produk
+        string kategori_produk
+        decimal harga_jual
+        int stok_produk
+        int stok_minimum
+    }
+
+    DETAIL_BATCH {
+        string id_batch PK
+        string id_produk FK
+        string no_lot
+        date tgl_kadaluarsa
+        int stok_batch
+    }
+
+    PENJUALAN {
+        string id_penjualan PK
+        string no_nota
+        datetime tgl_penjualan
+        string id_pegawai FK
+        string id_pelanggan FK
+        decimal total_bayar
+        string jenis_pembayaran
+    }
+
+    DETAIL_PENJUALAN {
+        string id_penjualan PK, FK
+        string id_produk PK, FK
+        int qty_jual
+        decimal harga_satuan
+        decimal diskon_item
+    }
+
+    DISTRIBUTOR {
+        string id_distributor PK
+        string nama_distributor
+        string telepon_distributor
+        string alamat_distributor
+    }
+
+    PEMBELIAN {
+        string id_pembelian PK
+        string no_faktur
+        date tgl_pembelian
+        string id_distributor FK
+        string status_pembelian
+    }
+
+    DETAIL_PEMBELIAN {
+        string id_pembelian PK, FK
+        string id_produk PK, FK
+        int qty_beli
+        decimal harga_beli_satuan
+    }
+
+    PELANGGAN ||--o{ PENJUALAN : "melakukan"
+    PEGAWAI ||--o{ PENJUALAN : "memproses"
+    PENJUALAN ||--|{ DETAIL_PENJUALAN : "memiliki"
+    PRODUK ||--o{ DETAIL_PENJUALAN : "terjual_dalam"
+    PRODUK ||--o{ DETAIL_BATCH : "memiliki_batch"
+    DISTRIBUTOR ||--o{ PEMBELIAN : "mengirim"
+    PEMBELIAN ||--|{ DETAIL_PEMBELIAN : "memuat"
+    PRODUK ||--o{ DETAIL_PEMBELIAN : "dibeli_dalam"

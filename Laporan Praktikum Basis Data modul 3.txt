@@ -1,0 +1,182 @@
+# Laporan Praktikum Basis Data
+**Nama:** Putri Meilani
+**NIM:** 25430061 
+**Kelas:** C
+**Tanggal:** 13 Oktober 2026 
+**Dosen Pengampu:** Dedi Irawan, S.Kom., M.T.I.  
+
+---
+
+## 1. Tujuan Praktikum
+1. Mengidentifikasi entitas, atribut, dan kunci dari dokumen kebutuhan data proyek.
+2. Menentukan relasi beserta kardinalitas dan partisipasinya berdasarkan aturan bisnis.
+3. Memecah relasi banyak-ke-banyak menjadi entitas asosiatif.
+4. Menggambar ERD notasi *Crow's Foot* dan memvalidasinya terhadap Kebutuhan Informasi (KI).
+
+## 2. Ringkasan Dasar Teori
+Model *Entity-Relationship* (ER) menggambarkan struktur data sebagai entitas (objek yang dicatat), atribut (karakteristik entitas), dan relasi (hubungan antarentitas). ERD merupakan hasil dari tahap desain konseptual dalam siklus perancangan basis data. 
+* **Kardinalitas dan Partisipasi:** Menjelaskan batasan jumlah instansiasi hubungan antarentitas (seperti *1-to-1*, *1-to-Many*, atau *Many-to-Many*) serta sifat keikutsertaannya (*mandatory* atau *optional*).
+* **Entitas Asosiatif:** Digunakan untuk menguraikan relasi *Many-to-Many* yang memiliki atribut tambahan tersendiri (contohnya tabel `detail_penjualan` yang memuat jumlah jual, harga satuan, dan diskon).
+
+## 3. Hasil Langkah Percobaan
+* Berdasarkan studi kasus **Koperasi Mahasiswa Sejahtera (Kopma)** pada modul, telah diidentifikasi dan dipetakan seluruh entitas utama (seperti `petugas`, `anggota`, `barang`, `pemasok`, `penjualan`, dan `pembelian`) beserta atribut kunci dan relasinya.
+* Validasi jalur relasi telah diuji terhadap daftar Kebutuhan Informasi (KI) sehingga dipastikan seluruh laporan seperti omzet, barang terlaris, dan stok minimum dapat terjawab melalui struktur ERD tersebut.
+
+## 4. Jawaban Titik Analisis
+1. **Titik Analisis 1 (Pemilihan Kunci Primer):** Penggunaan `id_anggota` sebagai *surrogate key* (kunci pengganti) dipilih alih-alih menjadikan `npm` atau `no_member` sebagai kunci utama guna menghindari risiko perubahan nilai atribut alami di masa mendatang serta menjaga stabilitas integritas referensial.
+2. **Titik Analisis 2 (Kardinalitas Relasi Penjualan):** Sisi penjualan ke `detail_penjualan` bernilai satu atau banyak (`1..N`) karena aturan bisnis mewajibkan setiap nota transaksi minimal mencatat satu baris produk yang dibeli.
+3. **Titik Analisis 3 (Penelusuran Kebutuhan Informasi):** Penelusuran jalur ERD pada proyek toko daring memastikan bahwa informasi terkait pegawai yang memproses pesanan, data pelanggan, produk, hingga distributor pengirim telah terakomodasi secara utuh melalui relasi antartabel.
+
+## 5. Hasil Latihan dan Modifikasi
+* Mengonversi rancangan konseptual ERD studi kasus Kopma serta menyusun pemetaan entitas proyek pribadi (Tema Toko Daring / Toko dengan NIM berakhiran 61) ke dalam bentuk diagram ER.
+
+## 6. Tugas Mandiri: Milestone Proyek 3
+Berikut adalah rancangan ERD untuk proyek mandiri dengan tema **Toko Daring** (Rentang NIM 50–74):
+
+### A. Daftar Entitas, Atribut, dan Kunci Proyek
+1. **PELANGGAN**
+   * `id_pelanggan` (PK, string)
+   * `no_member` (string, Unique)
+   * `nama_pelanggan` (string)
+   * `no_hp_pelanggan` (string)
+   * `tgl_lahir` (date)
+   * `poin_member` (int)
+   * `tgl_daftar` (date)
+2. **PEGAWAI**
+   * `id_pegawai` (PK, string)
+   * `kode_pegawai` (string)
+   * `nama_pegawai` (string)
+   * `peran_pegawai` (string)
+3. **PRODUK**
+   * `id_produk` (PK, string)
+   * `kode_barcode` (string)
+   * `nama_produk` (string)
+   * `merek_produk` (string)
+   * `kategori_produk` (string)
+   * `harga_jual` (decimal)
+   * `stok_produk` (int)
+   * `stok_minimum` (int)
+4. **DETAIL_BATCH** (Manajemen Batch/Lot Produk)
+   * `id_batch` (PK, string)
+   * `id_produk` (FK, string)
+   * `no_lot` (string)
+   * `tgl_kadaluarsa` (date)
+   * `stok_batch` (int)
+5. **PENJUALAN** (Kepala Transaksi)
+   * `id_penjualan` (PK, string)
+   * `no_nota` (string, Unique)
+   * `tgl_penjualan` (datetime)
+   * `id_pegawai` (FK, string)
+   * `id_pelanggan` (FK, string)
+   * `total_bayar` (decimal)
+   * `jenis_pembayaran` (string)
+6. **DETAIL_PENJUALAN** (Entitas Asosiatif)
+   * `id_penjualan` (PK, FK, string)
+   * `id_produk` (PK, FK, string)
+   * `qty_jual` (int)
+   * `harga_satuan` (decimal)
+   * `diskon_item` (decimal)
+7. **DISTRIBUTOR**
+   * `id_distributor` (PK, string)
+   * `nama_distributor` (string)
+   * `telepon_distributor` (string)
+   * `alamat_distributor` (string)
+8. **PEMBELIAN** (Pengadaan Stok)
+   * `id_pembelian` (PK, string)
+   * `no_faktur` (string)
+   * `tgl_pembelian` (date)
+   * `id_distributor` (FK, string)
+   * `status_pembelian` (string)
+9. **DETAIL_PEMBELIAN** (Entitas Asosiatif Pengadaan)
+   * `id_pembelian` (PK, FK, string)
+   * `id_produk` (PK, FK, string)
+   * `qty_beli` (int)
+   * `harga_beli_satuan` (decimal)
+
+### B. Visualisasi ERD Proyek (Mermaid Notation)
+```mermaid
+erDiagram
+    PELANGGAN {
+        string id_pelanggan PK
+        string no_member
+        string nama_pelanggan
+        string no_hp_pelanggan
+        date tgl_lahir
+        int poin_member
+        date tgl_daftar
+    }
+
+    PEGAWAI {
+        string id_pegawai PK
+        string kode_pegawai
+        string nama_pegawai
+        string peran_pegawai
+    }
+
+    PRODUK {
+        string id_produk PK
+        string kode_barcode
+        string nama_produk
+        string merek_produk
+        string kategori_produk
+        decimal harga_jual
+        int stok_produk
+        int stok_minimum
+    }
+
+    DETAIL_BATCH {
+        string id_batch PK
+        string id_produk FK
+        string no_lot
+        date tgl_kadaluarsa
+        int stok_batch
+    }
+
+    PENJUALAN {
+        string id_penjualan PK
+        string no_nota
+        datetime tgl_penjualan
+        string id_pegawai FK
+        string id_pelanggan FK
+        decimal total_bayar
+        string jenis_pembayaran
+    }
+
+    DETAIL_PENJUALAN {
+        string id_penjualan PK, FK
+        string id_produk PK, FK
+        int qty_jual
+        decimal harga_satuan
+        decimal diskon_item
+    }
+
+    DISTRIBUTOR {
+        string id_distributor PK
+        string nama_distributor
+        string telepon_distributor
+        string alamat_distributor
+    }
+
+    PEMBELIAN {
+        string id_pembelian PK
+        string no_faktur
+        date tgl_pembelian
+        string id_distributor FK
+        string status_pembelian
+    }
+
+    DETAIL_PEMBELIAN {
+        string id_pembelian PK, FK
+        string id_produk PK, FK
+        int qty_beli
+        decimal harga_beli_satuan
+    }
+
+    PELANGGAN ||--o{ PENJUALAN : "melakukan"
+    PEGAWAI ||--o{ PENJUALAN : "memproses"
+    PENJUALAN ||--|{ DETAIL_PENJUALAN : "memiliki"
+    PRODUK ||--o{ DETAIL_PENJUALAN : "terjual_dalam"
+    PRODUK ||--o{ DETAIL_BATCH : "memiliki_batch"
+    DISTRIBUTOR ||--o{ PEMBELIAN : "mengirim"
+    PEMBELIAN ||--|{ DETAIL_PEMBELIAN : "memuat"
+    PRODUK ||--o{ DETAIL_PEMBELIAN : "dibeli_dalam"

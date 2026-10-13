@@ -1,7 +1,7 @@
 Laporan Praktikum Basis Data - Pertemuan 1
-Nama: [Nama Lengkap Anda]
-NIM: 2301010123
-Kelas: [Kelas Anda, misal: IK-A]
+Nama: Putri Meilani
+NIM: 25430061
+Kelas: C
 Tanggal: 6 Oktober 2026   
 1. Tujuan PraktikumMenjalankan dan menghentikan layanan MariaDB melalui XAMPP Control Panel serta membaca status dan port layanan yang aktif.   Terhubung ke server MariaDB menggunakan CLI dan phpMyAdmin, serta mengidentifikasi perbedaan operasional keduanya.   Mengamankan akun root dengan password dan mengonfigurasi akun kerja dengan prinsip least privilege pada basis data tertentu.   Membuat basis data pertama dan mengelola alur kerja repositori Git yang terhubung ke GitHub.
 

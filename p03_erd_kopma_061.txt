@@ -1,0 +1,75 @@
+erDiagram
+    ANGGOTA {
+        string id_anggota PK
+        string npm
+        string nama_anggota
+        string prodi
+        string no_hp
+        decimal total_simpanan
+        date tgl_gabung
+    }
+
+    PENGURUS_PEGAWAI {
+        string id_pegawai PK
+        string kode_pegawai
+        string nama_pegawai
+        string jabatan
+    }
+
+    PRODUK {
+        string id_produk PK
+        string kode_barcode
+        string nama_produk
+        string kategori_produk
+        decimal harga_jual
+        int stok_produk
+        int stok_minimum
+    }
+
+    PENJUALAN {
+        string id_penjualan PK
+        string no_nota
+        datetime tgl_penjualan
+        string id_pegawai FK
+        string id_anggota FK
+        decimal total_bayar
+        string jenis_pembayaran
+    }
+
+    DETAIL_PENJUALAN {
+        string id_penjualan PK, FK
+        string id_produk PK, FK
+        int qty_jual
+        decimal harga_satuan
+        decimal diskon_anggota
+    }
+
+    PEMASOK {
+        string id_pemasok PK
+        string nama_pemasok
+        string telepon_pemasok
+        string alamat_pemasok
+    }
+
+    PEMBELIAN {
+        string id_pembelian PK
+        string no_faktur
+        date tgl_pembelian
+        string id_pemasok FK
+        string status_pembelian
+    }
+
+    DETAIL_PEMBELIAN {
+        string id_pembelian PK, FK
+        string id_produk PK, FK
+        int qty_beli
+        decimal harga_beli_satuan
+    }
+
+    ANGGOTA ||--o{ PENJUALAN : "melakukan"
+    PENGURUS_PEGAWAI ||--o{ PENJUALAN : "melayani"
+    PENJUALAN ||--|{ DETAIL_PENJUALAN : "memuat"
+    PRODUK ||--o{ DETAIL_PENJUALAN : "terjual_dalam"
+    PEMASOK ||--o{ PEMBELIAN : "mengirim"
+    PEMBELIAN ||--|{ DETAIL_PEMBELIAN : "mencakup"
+    PRODUK ||--o{ DETAIL_PEMBELIAN : "dibeli_dalam"
