@@ -1,0 +1,112 @@
+Laporan Praktikum Modul 4: Normalisasi dan Skema Relasional
+
+Mata Kuliah: Basis Data
+
+NIM: 25430061
+
+Nama: Putri Meilani
+
+Tanggal: 19 Oktober 2026
+
+1. Pendahuluan & Tujuan Praktikum
+
+Pada Modul 4 ini, praktikum berfokus pada teknik normalisasi data dari bentuk tidak terstruktur (Unnormalized Form / UNF) hingga mencapai Bentuk Normal Ketiga (3NF) dan evaluasi Boyce-Codd Normal Form (BCNF). Normalisasi bertujuan untuk meminimalkan redundansi data, menghindari anomali operasi (anomali sisip, ubah, dan hapus), serta menjamin integritas data dalam skema basis data relasional.
+
+2. Pengerjaan Langkah Percobaan (Studi Kasus Kopma)
+
+A. Dependensi Fungsional (Functional Dependencies - FD)
+
+Berdasarkan Aturan Bisnis (AB-xx) pada dokumen kebutuhan data Kopma, diperoleh pemetaan dependensi fungsional sebagai berikut:
+
+FD1: no_nota $\rightarrow$ tgl_penjualan, id_petugas, id_anggota, jumlah_total, diskon_anggota, total_bayar (Berdasarkan AB-01)
+
+FD2: id_petugas $\rightarrow$ nama_petugas, peran_petugas
+
+FD3: id_anggota $\rightarrow$ npm, nama_anggota, prodi, no_hp, total_simpanan, tgl_gabung (Berdasarkan AB-05)
+
+FD4: id_produk $\rightarrow$ kode_barcode, nama_produk, kategori_produk, harga_jual, stok_produk, stok_minimum (Berdasarkan AB-05)
+
+FD5: (no_nota, id_produk) $\rightarrow$ qty_jual, harga_satuan, diskon_anggota (Atribut transaksional, AB-04)
+
+FD6: id_pemasok $\rightarrow$ nama_pemasok, telepon_pemasok, alamat_pemasok
+
+FD7: no_faktur $\rightarrow$ tgl_pembelian, id_pemasok, status_pembelian (Berdasarkan AB-06)
+
+B. Tahapan Normalisasi (UNF hingga 3NF)
+
+1. Unnormalized Form (UNF)
+
+Dokumen sumber masih mengandung kelompok berulang (repeating groups) pada rincian item barang:
+
+
+$$\text{NOTA\_UNF}(\text{no\_nota}, \text{tgl\_penjualan}, \text{id\_petugas}, \text{nama\_petugas}, \text{id\_anggota}, \text{nama\_anggota}, \{\text{kode\_barang}, \text{nama\_barang}, \text{qty\_jual}, \text{harga\_satuan}, \text{subtotal\_item}\}, \text{total\_bayar})$$
+
+2. First Normal Form (1NF)
+
+Menghilangkan kelompok berulang sehingga setiap sel bersifat atomik, dengan kunci primer komposit (no_nota, id_produk):
+
+
+$$\text{NOTA\_1NF}(\underline{\text{no\_nota}}, \text{tgl\_penjualan}, \text{id\_petugas}, \text{nama\_petugas}, \text{id\_anggota}, \text{nama\_anggota}, \underline{\text{id\_produk}}, \text{kode\_barcode}, \text{nama\_barang}, \text{qty\_jual}, \text{harga\_satuan}, \text{diskon\_anggota}, \text{total\_bayar})$$
+
+3. Second Normal Form (2NF)
+
+Menghilangkan ketergantungan parsial (partial dependencies). Atribut yang hanya bergantung pada sebagian kunci komposit dipisahkan:
+
+anggota ($\underline{\text{id\_anggota}}$, $\text{npm}$, $\text{nama\_anggota}$, $\text{prodi}$, $\text{no\_hp}$, $\text{total\_simpanan}$, $\text{tgl\_gabung}$)
+
+petugas ($\underline{\text{id\_petugas}}$, $\text{kode\_petugas}$, $\text{nama\_petugas}$, $\text{peran\_petugas}$)
+
+produk ($\underline{\text{id\_produk}}$, $\text{kode\_barcode}$, $\text{nama\_produk}$, $\text{kategori\_produk}$, $\text{harga\_jual}$, $\text{stok\_produk}$, $\text{stok\_minimum}$)
+
+penjualan ($\underline{\text{id\_penjualan}}$, $\text{no\_nota}$, $\text{tgl\_penjualan}$, $\text{id\_petugas}$, $\text{id\_anggota}$)
+
+detail_penjualan ($\underline{\text{id\_penjualan}}$, $\underline{\text{id\_produk}}$, $\text{qty\_jual}$, $\text{harga\_satuan}$, $\text{diskon\_anggota}$)
+
+4. Third Normal Form (3NF) & Evaluation BCNF
+
+Menghilangkan ketergantungan transitif (transitive dependencies). Seluruh atribut non-kunci bergantung secara langsung dan penuh hanya pada kunci primer entitas masing-masing ($X \rightarrow Y$ di mana $X$ adalah superkey).
+Skema terbukti memenuhi standar 3NF dan BCNF karena tidak ada atribut non-kunci yang menentukan atribut kunci lainnya.
+
+C. Jawaban Titik Analisis
+
+Titik Analisis 1
+
+Pertanyaan: Mengapa FD5 menempatkan harga_satuan_detail_penjualan pada kunci (no_nota_penjualan, kode_barang), bukan pada kode_barang saja? Apa yang terjadi pada laporan omzet tahun lalu jika harga_satuan_detail_penjualan dipindah ke tabel barang?
+
+Jawaban:
+Sesuai dengan aturan bisnis AB-04, harga jual barang bersifat dinamis dan dapat berubah/naik di masa mendatang. Atribut harga_satuan pada tabel detail transaksi berfungsi mencatat nominal harga pada saat transaksi terjadi (snapshot historis). Apabila atribut harga tersebut dipindahkan ke tabel barang saja, maka setiap kali terjadi pembaruan harga master barang, histori transaksi dan laporan omzet periode lampau akan ikut berubah nilainya secara otomatis (tidak valid secara finansial dan merusak integritas audit).
+
+Titik Analisis 2
+
+Pertanyaan: Mengapa keputusan "total tidak disimpan" di tabel operasional tetap konsisten, meskipun di tabel arsip historis total disimpan?
+
+Jawaban:
+Pada sistem basis data operasional (Online Transaction Processing / OLTP), data bersifat dinamis dan sering mengalami perubahan item/diskon. Tidak menyimpan nilai turunan (total_bayar / subtotal) menjaga asas single source of truth dan menghindari anomali inkonsistensi data akibat update tidak serentak. Sebaliknya, pada data arsip historis (Online Analytical Processing / OLAP / Data Warehouse), data bersifat read-only (statis) dan digunakan untuk keperluan pelaporan skala besar, sehingga menyimpan nilai total secara eksplisit aman dari anomali serta secara signifikan mempercepat kinerja analisis/kueri tanpa perlu perhitungan ulang (SUM) secara terus-menerus.
+
+Titik Analisis 3
+
+Pertanyaan: Kolom pemasok_brg di spreadsheet lama tidak muncul di tabel barang. Di mana informasi "barang ini dipasok oleh siapa" kini disimpan? Apa keuntungannya dibanding menyimpan satu nama pemasok di tabel barang?
+
+Jawaban:
+Informasi relasi pemasokan barang kini tersimpan di dalam riwayat transaksi pengadaan/pembelian yang menghubungkan entitas pemasok, pembelian, detail_pembelian, dan barang.
+Keuntungannya:
+
+Fleksibilitas Pasokan (Multi-supplier): Satu jenis barang dapat dibeli dari beberapa pemasok yang berbeda dalam kurun waktu berbeda tanpa merusak struktur master data barang.
+
+Audit Histori: Memungkinkan pelacakan histori harga beli, perbandingan harga antar-pemasok, dan evaluasi performa/reputasi pasokan dari tiap distributor.
+
+3. Keputusan Nilai Turunan (Derived Values)
+
+Nilai-nilai turunan seperti subtotal_item, jumlah_total, dan total_bayar diputuskan untuk tidak disimpan secara permanen di dalam tabel operasional basis data. Nilai tersebut akan dihitung secara dinamis melalui kueri SQL menggunakan fungsi agregat (SUM(qty_jual * harga_satuan)) saat laporan dibutuhkan.
+
+Alasan:
+
+Mencegah timbulnya anomali data (inkonsistensi) apabila terdapat koreksi pada kuantitas item atau potongan diskon.
+
+Menghemat ruang penyimpanan (storage space) basis data operasional.
+
+Memastikan perhitungan selalu akurat berdasarkan data rincian transaksi terbaru.
+
+4. Kesimpulan
+
+Melalui proses normalisasi hingga bentuk 3NF/BCNF, skema basis data relasional yang dirancang telah terbebas dari grup berulang, ketergantungan parsial, maupun ketergantungan transitif. Hal ini menjamin struktur tabel aman dari anomali operasi transaksi harian serta siap diterjemahkan ke dalam skrip perintah DDL SQL pada Modul 5.
